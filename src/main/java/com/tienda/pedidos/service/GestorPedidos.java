@@ -1,5 +1,7 @@
 package com.tienda.pedidos.service;
 
+
+import com.tienda.pedidos.descuento.CalculadorDescuentoFinal;
 import com.tienda.pedidos.descuento.EstrategiaDescuento;
 import com.tienda.pedidos.descuento.SelectorEstrategiaDescuento;
 import com.tienda.pedidos.dto.ItemPedido;
@@ -23,7 +25,7 @@ public class GestorPedidos {
 
     private final JdbcTemplate jdbcTemplate;
     private final ValidadorPedido validadorPedido;
-    private final SelectorEstrategiaDescuento selectorEstrategiaDescuento;
+    private final CalculadorDescuentoFinal calculadorDescuentoFinal;
     private final PedidoRepository pedidoRepository;
     private final NotificacionPedidoService notificacionPedidoService;
 
@@ -31,12 +33,12 @@ public class GestorPedidos {
             JdbcTemplate jdbcTemplate,
             ValidadorStock validadorStock,
             ValidadorCliente validadorCliente,
-            SelectorEstrategiaDescuento selectorEstrategiaDescuento,
+            CalculadorDescuentoFinal calculadorDescuentoFinal,
             PedidoRepository pedidoRepository,
             NotificacionPedidoService notificacionPedidoService) {
 
         this.jdbcTemplate = jdbcTemplate;
-        this.selectorEstrategiaDescuento = selectorEstrategiaDescuento;
+        this.calculadorDescuentoFinal = calculadorDescuentoFinal;
         this.pedidoRepository = pedidoRepository;
         this.notificacionPedidoService = notificacionPedidoService;
 
@@ -67,19 +69,13 @@ public class GestorPedidos {
         // 2. Calcular subtotal
         double subtotal = calcularSubtotal(request);
 
-        // 3. Seleccionar estrategia de descuento
-        EstrategiaDescuento estrategia =
-                selectorEstrategiaDescuento.seleccionar(
-                        contexto.getTipoCliente()
-                );
-
-        double descuento =
-                estrategia.calcular(
-                        subtotal,
-                        request.getClienteId(),
-                        request
-                );
-
+        // 3. Calcular el mayor descuento entre el cliente y las campañas
+        double descuento = calculadorDescuentoFinal.calcular(
+        subtotal,
+        request.getClienteId(),
+        contexto.getTipoCliente(),
+        request
+);
         // 4. Calcular impuesto y total
         double subtotalConDescuento =
                 subtotal - (subtotal * descuento);

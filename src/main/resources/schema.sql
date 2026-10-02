@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS clientes (
     id BIGINT PRIMARY KEY,
-    tipo_cliente VARCHAR(30) NOT NULL
+    tipo_cliente VARCHAR(30) NOT NULL,
+    nit VARCHAR(30)
 );
-
 CREATE TABLE IF NOT EXISTS productos (
     id BIGINT PRIMARY KEY,
     precio DECIMAL(12, 2) NOT NULL

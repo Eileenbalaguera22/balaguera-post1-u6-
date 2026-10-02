@@ -1,8 +1,9 @@
-INSERT INTO clientes (id, tipo_cliente) VALUES
-(1, 'VIP'),
-(2, 'FRECUENTE'),
-(3, 'MOROSO'),
-(4, 'REGULAR');
+INSERT INTO clientes (id, tipo_cliente, nit) VALUES
+(1, 'VIP', NULL),
+(2, 'FRECUENTE', NULL),
+(3, 'MOROSO', NULL),
+(4, 'REGULAR', NULL),
+(5, 'REGULAR', '900123456-7');
 
 INSERT INTO productos (id, precio) VALUES
 (101, 100000.00),
