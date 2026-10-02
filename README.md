@@ -745,6 +745,131 @@ BUILD SUCCESS
 Las pruebas permiten comprobar que el comportamiento principal del sistema se conserva después de aplicar los patrones de diseño.
 
 ---
+Parte 2 — Crecimiento del proyecto
+Escenario
+
+Después de completar la primera parte se agregaron tres nuevas campañas promocionales:
+
+BLACK_FRIDAY: 25 % de descuento durante la campaña.
+CORPORATIVO: 10 % para clientes con NIT registrado.
+VOLUMEN: 12 % cuando el pedido supera 20 unidades.
+
+Inicialmente estas campañas fueron agregadas como nuevos eslabones de ValidadorPedido.
+
+Antipatrón identificado: Golden Hammer
+
+El problema de diseño no estaba en el funcionamiento de las campañas, sino en la decisión de utilizar nuevamente Chain of Responsibility simplemente porque había funcionado para las validaciones de la Parte 1.
+
+PromocionBlackFriday, PromocionCorporativo y PromocionVolumen no necesitaban una dependencia de orden entre ellas ni necesitaban detener el procesamiento del pedido.
+
+Esto es diferente de ValidadorStock y ValidadorCliente, donde sí existe una razón para utilizar una cadena de validación y permitir que el proceso se detenga cuando una validación falla.
+
+Las tres campañas únicamente calculan un porcentaje de descuento a partir de información del pedido o del cliente. Por esta razón, su problema tiene la misma forma que los descuentos por tipo de cliente que ya utilizaban Strategy.
+
+La decisión inicial de utilizar la cadena únicamente por ser una solución conocida constituye el antipatrón Golden Hammer: utilizar una herramienta conocida para resolver problemas diferentes sin evaluar previamente si el problema tiene la misma estructura.
+
+Corrección aplicada
+
+Las tres campañas fueron trasladadas a la abstracción EstrategiaDescuento:
+
+DescuentoBlackFriday
+DescuentoCorporativo
+DescuentoVolumen
+
+Además, se creó:
+
+CalculadorDescuentoFinal
+
+Esta clase combina el descuento correspondiente al tipo de cliente con las campañas promocionales activas y conserva la regla de negocio de aplicar el mayor descuento disponible.
+
+La estructura queda organizada de la siguiente manera:
+
+GestorPedidos
+│
+├── Validaciones
+│   └── Chain of Responsibility
+│       ├── ValidadorStock
+│       └── ValidadorCliente
+│
+└── Descuentos
+    └── Strategy
+        ├── DescuentoVip
+        ├── DescuentoFrecuente
+        ├── DescuentoEstandar
+        ├── DescuentoBlackFriday
+        ├── DescuentoCorporativo
+        ├── DescuentoVolumen
+        └── CalculadorDescuentoFinal
+Eliminación del código anterior
+
+Las clases utilizadas inicialmente como eslabones de la cadena:
+
+PromocionBlackFriday
+PromocionCorporativo
+PromocionVolumen
+
+fueron eliminadas después de realizar la corrección.
+
+También se eliminó el campo mutable descuentoCampana de ContextoPedido.
+
+El código descartado no se dejó comentado dentro del proyecto. El historial de Git permite conservar la evolución del desarrollo sin mantener código obsoleto dentro de la implementación activa.
+
+Decisión de diseño — Strategy en lugar de Chain of Responsibility
+
+Se utilizó Strategy para las tres campañas porque cada una calcula un descuento independientemente de las demás.
+
+No existe una dependencia de orden entre Black Friday, Corporativo y Volumen, ni una necesidad de detener el procesamiento cuando una campaña se evalúa.
+
+En cambio, las validaciones de stock y cliente sí justifican una cadena porque determinan si el pedido puede continuar o debe ser rechazado.
+
+Por lo tanto, la selección del patrón se realizó de acuerdo con la naturaleza del problema y no simplemente reutilizando el patrón utilizado anteriormente.
+
+Pruebas
+
+Después de realizar la corrección se ejecutó:
+
+mvn clean test
+
+Resultado:
+
+Tests run: 7
+Failures: 0
+Errors: 0
+Skipped: 0
+
+BUILD SUCCESS
+
+Las pruebas verifican el funcionamiento del procesamiento de pedidos y de las validaciones implementadas.
+
+La salida funcional del sistema corregido mantiene el comportamiento esperado de los descuentos, incluyendo las nuevas campañas promocionales.
+
+Cómo ejecutar el proyecto
+Requisitos
+Java 17
+Maven
+Spring Boot
+Spring JDBC
+H2 Database
+Ejecución
+mvn spring-boot:run
+Ejecución de pruebas
+mvn test
+
+También puede utilizarse:
+
+mvn clean test
+Herramientas utilizadas
+Java
+Spring Boot
+Spring JDBC
+Maven
+H2 Database
+Git
+GitHub
+Visual Studio Code / IntelliJ IDEA
+Conclusiones
+
+El desarrollo permitió identificar que la elección de un patrón de diseño debe depender de la naturaleza del problema y no solamente de soluciones que hayan funcionado anteriormente. En la primera parte, Chain of Responsibility permitió separar las validaciones que pueden detener el procesamiento, mientras que Strategy permitió encapsular las diferentes formas de calcular descuentos. Durante el crecimiento del sistema se identificó el antipatrón Golden Hammer al utilizar nuevamente la cadena para resolver un problema que no tenía dependencia de orden ni necesidad de corte anticipado. Finalmente, las nuevas campañas fueron incorporadas como estrategias de descuento, manteniendo el comportamiento funcional y mejorando la separación de responsabilidades del sistema. 
 
 # 16. Conclusión
 
